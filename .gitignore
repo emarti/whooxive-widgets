@@ -1,3 +1,7 @@
 .DS_Store
 eb-virt
-
+cert
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
