@@ -1,9 +1,14 @@
+print "Hello "
+import sys
+sys.path.append('/anaconda/lib/python2.7/site-packages')
+
 from flask import Flask
 from flask import request
 from flask import render_template
 from sklearn.externals import joblib
 import json
 
+print "world!"
 
 # from flask import send_static_file
 app = Flask(__name__)
