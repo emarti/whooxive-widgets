@@ -1,6 +1,6 @@
 print "Hello "
-import sys
-sys.path.append('/anaconda/lib/python2.7/site-packages')
+#import sys
+#sys.path.append('/anaconda/lib/python2.7/site-packages')
 
 from flask import Flask
 from flask import request
