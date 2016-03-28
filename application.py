@@ -11,19 +11,19 @@ import json
 print "world!"
 
 # from flask import send_static_file
-app = Flask(__name__)
+application = Flask(__name__)
 
 clf_journal = joblib.load('svm_journal.pkl')
 clf_category, category_labeller = joblib.load('svm_category.pkl')
 
 journals = ['PRL', 'Nature']
 
-@app.route("/")
+@application.route("/")
 def hello():
     return render_template("abstract_predictor.html")
     # return send_static_file("test.html")
 
-@app.route('/svm', methods=['POST'])
+@application.route('/svm', methods=['POST'])
 def svm_category():
     abstract = str(request.form['abstract'])
 
@@ -37,4 +37,5 @@ def svm_category():
                        'category': ', '.join(category_predict[0])})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    application.debug = True
+    application.run()
