@@ -1,6 +1,7 @@
 .DS_Store
 eb-virt
 cert
+.ipynb_checkpoints
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml

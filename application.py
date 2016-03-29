@@ -1,4 +1,3 @@
-print "Hello "
 #import sys
 #sys.path.append('/anaconda/lib/python2.7/site-packages')
 
@@ -8,10 +7,12 @@ from flask import render_template
 from sklearn.externals import joblib
 import json
 
-print "world!"
+print "Loading flask"
 
 # from flask import send_static_file
 application = Flask(__name__)
+
+print "Loading sklearn classifiers"
 
 clf_journal = joblib.load('svm_journal.pkl')
 clf_category, category_labeller = joblib.load('svm_category.pkl')
@@ -35,6 +36,8 @@ def svm_category():
                        'abstract': abstract.lower(),
                        'journal': journal_predict,
                        'category': ', '.join(category_predict[0])})
+
+print "Done loading classifiers"
 
 if __name__ == "__main__":
     application.debug = True
