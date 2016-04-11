@@ -7,41 +7,138 @@ textarea {
    font-family: Arial;
 } 
 
+.text {
+    font-family: sans-serif;
+    font-size: 14px;
+/*    fill: black;*/
+}
+
 </style>
 <div class="chart"></div>
 <body>
     <form>
         Type abstract here:<p>
-        <textarea rows="8" cols="80" id="textarea_abstract" oninput="update()" autofocus></textarea>
+        <textarea rows="8" cols="80" id="textarea_abstract" oninput="typing()" autofocus>Ultracold gases promise access to many-body quantum phenomena at convenient length and time scales. However, it is unclear whether the entropy of these gases is low enough to realize many phenomena relevant to condensed matter physics, such as quantum magnetism. Here we report reliable single-shot temperature measurements of a degenerate 87Rb gas by imaging the momentum distribution of thermalized magnons, which are spin excitations of the atomic gas. We record average temperatures as low as 0.022(1)stat(2)sys times the Bose-Einstein condensation temperature, indicating an entropy per particle, S/N≈0.001kB at equilibrium, that is well below the critical entropy for antiferromagnetic ordering of a Bose-Hubbard system. The magnons themselves can reduce the temperature of the system by absorbing energy during thermalization and by enhancing evaporative cooling, allowing low-entropy gases to be produced within deep traps.</textarea>
     </form>
     
-    Journal prediction: <p id="journal"></p>
-    
-    Category predictions: <p id="category"></p>
-    
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script type=text/javascript src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <p id="calculating"></p>
+
+    <!-- // <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+    <!-- // <script type=text/javascript src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script> -->
+    <script type=text/javascript src="/js/jquery.min.js"></script>
+    <script type=text/javascript src="/js/d3.min.js"></script>
     <script type="text/javascript">
+    
+    typing();
+    
+    // d3 setup
+    var margin = {
+        top: 20,
+        left: 20,
+        bottom: 200,
+        right: 250,
+        textheight: 20,
+    };
+    
+    var x = d3.scale.linear().range([margin.left, margin.right]);
+    var y_journal = d3.scale.ordinal().rangeBands([margin.top, margin.bottom], 1);
+    var y_category = d3.scale.ordinal().rangeBands([margin.top, margin.bottom], 1);
+    
+    var svg = d3.select("body").append("svg")
+                               .attr("width", margin.right)
+                               .attr("height",margin.bottom);
+    
+    x.domain([0, 1]);
+    
+    svg.append("text").attr("x", x(0))
+                          .attr("y", margin.top)
+                          .text("Journal");
+    svg.append("text").attr("x", x(0.5))
+                          .attr("y", margin.top)
+                          .text("Category");    
+    
+    // After typing
+    
     var result;
-    function update() {
-        var abstract = document.getElementById("textarea_abstract").value;
+    var timeout = null;
+    
+    function typing() {
+        if (timeout) {
+           clearTimeout(timeout);
+           document.getElementById("calculating").innerHTML = "<br>";
+        }
+        timeout = setTimeout(function() {
+            var abstract = JSON.parse(JSON.stringify( document.getElementById("textarea_abstract").value ));
+
+            document.getElementById("calculating").innerHTML = "Calculating...";
+            $.ajax({
+                type: 'POST',
+                url: '/svm',
+                data: {abstract: abstract},
+                success: function(x) { 
+                    data = JSON.parse(x);
+                    // console.log(data);
+                    document.getElementById("calculating").innerHTML = "Calculating... Done!";
+                    result = data;
+                    update(data.journal, data.category);
+                    document.getElementById("abstract_colored").innerHTML = data.abstract_colored;
+                    }
+            })
+        }, 500);
+    }
+    
+    function update(data_journal, data_category) {
+        // d3 fun!
+        // var data_journal = [ { 'name': 'PRL', 'value': 0},
+        //                      { 'name': 'Nature', 'value': 1}];
+        // var data_category = [ { 'name': 'atom-ph', 'value': 0},
+        //                       { 'name': 'quant-ph', 'value': 1},
+        //                       { 'name': 'hep-th', 'value': 1}];
+
+        var text_journal = svg.selectAll(".text.journal")
+                                             .data(data_journal);
+
+        var text_category = svg.selectAll(".text.category")
+                                             .data(data_category);
+
+        y_journal.domain(data_journal.map(function(d) { return d.name} ));
+        y_category.domain(data_category.map(function(d) { return d.name} ));
+
+        var currentY = 1.5*margin.textheight;
+        text_journal.exit().remove();
+        text_journal.enter().append("text");
+        text_journal.transition().duration(1000)
+                   .attr("class", "text journal")
+                   .attr("x", function(d) { return x(0); })
+                   .attr("y", function(d) { 
+                        currentY += margin.textheight;
+                        return currentY; })
+                   .attr("fill", function(d) { return (d.name=="Nature") ? "red" : "blue"; })
+                    .attr("opacity", function(d) { return 0.2+0.8*d.value; })
+                    .text(function (d) { return d.name; });
         
-        $.ajax({
-            type: 'POST',
-            url: '/svm',
-            data: {abstract: abstract},
-            success: function(x) { 
-                data = JSON.parse(x);
-                console.log(data);
-                document.getElementById("journal").innerHTML = data.journal;
-                document.getElementById("category").innerHTML = data.category;
-                // document.getElementById("categories").innerHTML = data.categories;
-                result = data; }
-        })
-     
-         // alert("Success! " + abstract);
+        var currentY = 1.5*margin.textheight;
+        text_category.exit().remove();
+        text_category.enter().append("text");
+        text_category.transition().duration(1000)
+                   .attr("class", "text category")
+                   // .style("opacity", 0.5)
+                   // .style("opacity", function(d) { return 0.2+0.8*d.value; })
+                   .attr("x", function(d) { return x(0.5); })
+                   .attr("y", function(d) { 
+                        currentY += margin.textheight;
+                        return currentY; })
+                   .attr("opacity", function(d) { return 0.2+0.8*d.value; })
+                   .attr("fill", function(d) { return d.value ? "red" : "black"; })
+                   .text(function (d) { return d.name; });
+        
     }
 
+        
     </script>
+    
+    <p>Which words are the most important indicators of which journal the abstract will get into? Highlighted are words that we expect to be indicative of <span style="background-color:#AAAAFF">PRL</span> and <span style="background-color:#FFAAAA">Nature</span>.</p>
+    
+    <p  style="margin-left:50px"  style="margin-right:50px" id="abstract_colored"></p>
 </body>
 
