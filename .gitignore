@@ -6,3 +6,5 @@ cert
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+svm_category_old.pkl
+svm_journal_old.pkl
