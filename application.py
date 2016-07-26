@@ -1,4 +1,5 @@
-#import sys
+import sys, os
+print os.path.dirname(sys.executable)
 #sys.path.append('/anaconda/lib/python2.7/site-packages')
 
 from flask import Flask
@@ -6,9 +7,13 @@ from flask import request
 from flask import render_template
 from flask import send_from_directory
 
-from sklearn.externals import joblib
-import json
+print "Imported flask"
 
+from sklearn.externals import joblib
+
+print "Imported sklearn joblib"
+
+import json
 import numpy as np
 import re
 
